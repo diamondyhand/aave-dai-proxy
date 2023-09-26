@@ -5,7 +5,9 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "hardhat/console.sol";
+import '@openzeppelin/contracts/proxy/utils/Initializable.sol';
+import '@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 
 interface IAavePool {
     function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
@@ -32,7 +34,7 @@ interface IAToken is IERC20 {
 /**
  * @dev Aave Dai Proxy Contract
  */
-contract AaveDaiProxy is IStrategy, ReentrancyGuard {
+contract AaveDaiProxy is IStrategy, ReentrancyGuard, Initializable, UUPSUpgradeable, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -62,6 +64,8 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard {
         aToken = IAToken(_aDAI);
 
         token.approve(address(pool), type(uint256).max);
+        _disableInitializers();
+
     }
 
     /// Internal Functions
@@ -161,4 +165,11 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard {
         require(_amountToShares(amount) <= userShares[tokenId], "Invalid");
         _withdraw(tokenId, _amountToShares(amount));
     }
+
+    /**
+     * @dev Admin uses "updateTo" function to update instead of "updateCode". Only admin can call that function.
+     * @param newCode upgrade contract address
+     */
+    function _authorizeUpgrade(address newCode) internal override onlyOwner {}
+
 }
