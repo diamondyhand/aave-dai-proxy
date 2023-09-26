@@ -23,7 +23,7 @@ if (!process.env.PRIVATEKEY) {
 }
 
 const chainIds = {
-  hardhat: 31337,
+  hardhat: 11155111,
   bsc: 56,
   mainnet: 1,
 };
@@ -56,7 +56,7 @@ const config: HardhatUserConfig = {
       chainId: chainIds.hardhat,
       initialBaseFeePerGas: 0,
       forking: {
-        url: "https://eth-sepolia.g.alchemy.com/v2/WOWbw7JHW0AIDDfUNI17dgkuclMZD6hR"
+        url: "https://eth-sepolia.g.alchemy.com/v2/WOWbw7JHW0AIDDfUNI17dgkuclMZD6hR",
       },
       allowUnlimitedContractSize: true,
       gas: 18000000,

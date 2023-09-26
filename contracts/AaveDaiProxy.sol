@@ -5,6 +5,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 interface IAavePool {
     function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
@@ -53,22 +54,20 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard {
      * @param _aDAI aDAI ERC20 Token address.
      * @param _pool Aave pool address.
      */
-    constructor(IERC20 _dai, IAToken _aDAI, IAavePool _pool) {
-        require(address(_dai) != address(0) && address(_pool) != address(0) && address(_aDAI) != address(0), "Invalid");
-        require(_aDAI.pool() == address(_pool), "Invalid");
+    constructor(address _dai, address _aDAI, address _pool) {
+        require(_dai != address(0) && _aDAI != address(0) && _pool != address(0), "Invalid");
 
-        token = _dai;
-        pool = _pool;
-        aToken = _aDAI;
+        token = IERC20(_dai);
+        pool = IAavePool(_pool);
+        aToken = IAToken(_aDAI);
 
         token.approve(address(pool), type(uint256).max);
     }
 
     /// Internal Functions
-
     /**
      * @dev internal _withdraw function with tokenId and shares for withdraw.
-     * @param tokenId unique token IDs for each user's deposit. 
+     * @param tokenId unique token IDs for each user's deposit.
      * @param shares for DAI token amount.
      * @return amount of DAI token.
      */
@@ -107,7 +106,7 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard {
     /// External Functions
     /**
      * @dev deposit function that calculates the shares in Dai token amount.
-     * @param tokenId unique token IDs for each user's deposit. 
+     * @param tokenId unique token IDs for each user's deposit.
      * @param amount of DAI token.
      */
     function deposit(uint256 tokenId, uint256 amount) external override nonReentrant {
@@ -126,7 +125,7 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard {
 
     /**
      * @dev withdraw function with tokenId and shares for withdraw.
-     * @param tokenId unique token IDs for each user's deposit. 
+     * @param tokenId unique token IDs for each user's deposit.
      * @param shares of DAI token amount.
      * @return amount of DAI token.
      */
@@ -137,7 +136,7 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard {
 
     /**
      * @dev withdrawAll function with tokenId for withdraw.
-     * @param tokenId unique token IDs for each user's deposit. 
+     * @param tokenId unique token IDs for each user's deposit.
      * @return amount of DAI token.
      */
     function withdrawAll(uint256 tokenId) external override nonReentrant returns (uint256 amount) {
@@ -146,7 +145,7 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard {
 
     /**
      * @dev get Amount from token Id..
-     * @param tokenId unique token IDs for each user's deposit. 
+     * @param tokenId unique token IDs for each user's deposit.
      * @return amount of DAI token.
      */
     function getAmountOfTokenId(uint256 tokenId) external view override returns (uint256 amount) {
@@ -155,8 +154,8 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard {
 
     /**
      * @dev withdrawToken for tokenId and amount.
-     * @param tokenId unique token IDs for each user's deposit. 
-     * @param amount unique token IDs for each user's deposit. 
+     * @param tokenId unique token IDs for each user's deposit.
+     * @param amount unique token IDs for each user's deposit.
      */
     function withdrawToken(uint256 tokenId, uint256 amount) external override nonReentrant {
         require(_amountToShares(amount) <= userShares[tokenId], "Invalid");
