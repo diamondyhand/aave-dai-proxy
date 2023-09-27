@@ -44,8 +44,6 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard, Initializable, UUPSUpgradea
     IERC20 public immutable token; // DAI address
     IAToken public immutable aToken; // aDAI token address
     IAavePool public immutable pool;
-
-    uint256 public constant MULTIPLIER = 1e18;
     uint16 public constant REFERRAL_CODE = 0xaa;
 
     event Deposit(uint256 id, uint256 shares, uint256 amount);
@@ -65,7 +63,6 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard, Initializable, UUPSUpgradea
 
         token.approve(address(pool), type(uint256).max);
         _disableInitializers();
-
     }
 
     /// Internal Functions
@@ -97,16 +94,6 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard, Initializable, UUPSUpgradea
         amount = totalShares == 0 ? type(uint).max : shares.mul(totalAmount).div(totalShares);
     }
 
-    /**
-     * @dev internal _amountToShares function that calculates the shares in Dai token amount.
-     * @param amount DAI token amount.
-     * @return shares of DAI token amount.
-     */
-    function _amountToShares(uint256 amount) internal view returns (uint256 shares) {
-        uint256 totalAmount = aToken.balanceOf(address(this));
-        shares = totalAmount == 0 ? type(uint).max : amount.mul(totalShares).div(totalAmount);
-    }
-
     /// External Functions
     /**
      * @dev deposit function that calculates the shares in Dai token amount.
@@ -119,11 +106,9 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard, Initializable, UUPSUpgradea
         pool.supply(address(token), amount, address(this), REFERRAL_CODE);
 
         uint256 aTokenAmount = aToken.balanceOf(address(this)) - prevBalance;
-        uint256 shares = totalShares > 0 ? (aTokenAmount * totalShares) / prevBalance : aTokenAmount;
-
+        uint256 shares = totalShares > 0 ? (aTokenAmount * totalShares) / prevBalance : 1e18;
         totalShares += shares;
         userShares[tokenId] += shares;
-
         emit Deposit(tokenId, shares, amount);
     }
 
@@ -162,14 +147,24 @@ contract AaveDaiProxy is IStrategy, ReentrancyGuard, Initializable, UUPSUpgradea
      * @param amount unique token IDs for each user's deposit.
      */
     function withdrawToken(uint256 tokenId, uint256 amount) external override nonReentrant {
-        require(_amountToShares(amount) <= userShares[tokenId], "Invalid");
-        _withdraw(tokenId, _amountToShares(amount));
+        require(amountToShares(amount) <= userShares[tokenId], "Invalid");
+        _withdraw(tokenId, amountToShares(amount));
     }
+
+    /**
+     * @dev public amountToShares function that calculates the shares in Dai token amount.
+     * @param amount DAI token amount.
+     * @return shares of DAI token amount.
+     */
+    function amountToShares(uint256 amount) public view returns (uint256 shares) {
+        uint256 totalAmount = aToken.balanceOf(address(this));
+        shares = totalAmount == 0 ? type(uint).max : amount.mul(totalShares).div(totalAmount);
+    }
+
 
     /**
      * @dev Admin uses "updateTo" function to update instead of "updateCode". Only admin can call that function.
      * @param newCode upgrade contract address
      */
     function _authorizeUpgrade(address newCode) internal override onlyOwner {}
-
 }

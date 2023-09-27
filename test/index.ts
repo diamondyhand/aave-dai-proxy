@@ -1,6 +1,6 @@
 import { Contract } from "ethers";
 import { expect } from "chai";
-import { ethers, network } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { impersonateAccount, mine } from "@nomicfoundation/hardhat-network-helpers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import ERC20Abi from "./abi/ERC20.json";
@@ -11,6 +11,8 @@ describe("Start AaveDaiProxy", async () => {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let aaveDaiProxy: Contract;
+  let aaveDaiMock: Contract;
+
   let daiToken: Contract;
   let aDaiToken: Contract;
 
@@ -45,7 +47,7 @@ describe("Start AaveDaiProxy", async () => {
         await expect(
           AaveDaiProxy.deploy(ZERO_ADDRESS, DAI_ADDRESS, POOL_ADDRESS),
         ).to.be.revertedWith("Invalid");
-      });
+      });    
     });
 
     describe("Deposit Func", () => {
@@ -86,9 +88,11 @@ describe("Start AaveDaiProxy", async () => {
 
       it("If not Invalid shares", async () => {
         await daiToken.approve(aaveDaiProxy.address, DAI500);
-        await aaveDaiProxy.deposit(1, DAI500);
-        await aaveDaiProxy.withdraw(1, DAI10);
-        await aaveDaiProxy.withdraw(1, DAI10);
+        await aaveDaiProxy.deposit(1, DAI10);
+        await aaveDaiProxy.deposit(1, DAI10);
+
+        const shares = await aaveDaiProxy.amountToShares(DAI10.mul(2));
+        await aaveDaiProxy.withdraw(1, shares);
       });
     });
 
