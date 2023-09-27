@@ -1,47 +1,41 @@
-# Aave Dai Deposit Proxy
+# 🚩 Aave Dai Proxy Contract
 
+## Description (Ethereum Sepolia)
 - Users deposit with dai token into Aave and get a shareAmount.
 - Users deposit in different storages according to tokenId and receive the corresponding shareAmount.
 - Also Users withdraw with the selected amount, shareAmount and all about tokenId.
 
-## Variable
+### Tech Stack
 
-#### totalShareAmount
-Total shares of tokenId.
+  - Solidity:         v0.8.18
+  - TypeScript:       v4.7.4
+  - Hardhat:          v2.10.2
+  - Solidity-coverage v0.7.21
+  - Format & Lint - ESLint & Prettier
+  - Git Hooks: pre-commit
+  
+### Project setup
 ```
-  totalShareAmount = 10 ** 18;
-```  
-
-
-## Functions
-
-#### deposit(uint256 _tokenId)
-
-- Users deposit with Dai token to the TokenId and will get a shareAmount about TokenId. 
-  In here, dai token amount is the dai token amount of strategy.
-
-```
-  shareAmount = userDaiToken * totalShareAmount / totalDaiTokenByTokenId
-```  
-
-
-#### withdraw(uint256 tokenId, uint256 shareAmount) external returns (uint256);
-- Users withdraw with dai token amounts about shareAmount of the tokenId.
-- Return daiTokenAmount
-
-```
-  daiTokenAmount = shareAmount * totalDaiTokenByTokenId / totalShareAmount.
+npm install
 ```
 
-
-#### withdrawAll(uint256 tokenId)
-- Users withdraw with all dai token amounts of the tokenId.
-- Return daiTokenAmount
-
+### Project compile
 ```
-  daiTokenAmount = userAmount * totalDaiTokenByTokenId / totalShareAmount.
+npm run compile
 ```
 
-#### withdrawToken(uint256 tokenId, uint256 amount)
-- Users withdraw with dai token selected amounts of the tokenId.
+### Project clean
+```
+npm run clean
+```
 
+### Project test
+```
+npm test
+```
+  
+### Project coverage
+```
+npm run coverage
+```
+  
