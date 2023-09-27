@@ -1,9 +1,7 @@
 # 🚩 Aave Dai Proxy Contract
 
 ## Description (Ethereum Sepolia)
-- Users deposit with dai token into Aave and get a shareAmount.
-- Users deposit in different storages according to tokenId and receive the corresponding shareAmount.
-- Also Users withdraw with the selected amount, shareAmount and all about tokenId.
+Write an Aave Dai Deposit Proxy that allows users to deposit DAI from balance into Aave on Sepolia.
 
 ### Tech Stack
 
