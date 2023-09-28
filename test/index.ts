@@ -4,7 +4,7 @@ import { ethers, upgrades } from "hardhat";
 import { impersonateAccount, mine } from "@nomicfoundation/hardhat-network-helpers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import ERC20Abi from "./abi/ERC20.json";
-import { deploySC, toWei } from "./utils/helpers";
+import { deploySC, toDAI } from "./utils/helpers";
 import { DAI_DECIMAL } from "./utils/constants";
 
 describe("Start AaveDaiProxy", async () => {
@@ -21,8 +21,8 @@ describe("Start AaveDaiProxy", async () => {
   const ADAI_ADDRESS = '0x29598b72eb5CeBd806C5dCD549490FdA35B13cD8';
   const DAI_ADDRESS = '0xFF34B3d4Aee8ddCd6F9AFFFB6Fe49bD371b8a357';
   const DAI_HOLDER = '0x0F97F07d7473EFB5c846FB2b6c201eC1E316E994';
-  const DAI10 = toWei(10, DAI_DECIMAL);
-  const DAI500 = toWei(500, DAI_DECIMAL);
+  const DAI10 = toDAI(10, DAI_DECIMAL);
+  const DAI500 = toDAI(500, DAI_DECIMAL);
 
   beforeEach(async () => {
     [alice, bob] = await ethers.getSigners();
@@ -33,9 +33,9 @@ describe("Start AaveDaiProxy", async () => {
     daiToken = await ethers.getContractAt(ERC20Abi, DAI_ADDRESS);
     aDaiToken = await ethers.getContractAt(ERC20Abi, ADAI_ADDRESS);
     await impersonateAccount(DAI_HOLDER);
-    await alice.sendTransaction({ value: toWei(1, 18), to: DAI_HOLDER });
+    await alice.sendTransaction({ value: toDAI(1, 18), to: DAI_HOLDER });
     const daiHolder = await ethers.getSigner(DAI_HOLDER);
-    await daiToken.connect(daiHolder).transfer(alice.address, toWei(1000, DAI_DECIMAL));
+    await daiToken.connect(daiHolder).transfer(alice.address, toDAI(1000, DAI_DECIMAL));
 
     await aaveDaiProxy.deployed();
   });
@@ -92,7 +92,16 @@ describe("Start AaveDaiProxy", async () => {
         await aaveDaiProxy.deposit(1, DAI10);
 
         const shares = await aaveDaiProxy.amountToShares(DAI10.mul(2));
+
+        expect(
+          await aDaiToken.balanceOf(aaveDaiProxy.address),
+        ).to.be.equal(await aaveDaiProxy.getAmountOfTokenId(1));
+
         await aaveDaiProxy.withdraw(1, shares);
+
+        expect(
+          await aDaiToken.balanceOf(aaveDaiProxy.address),
+        ).to.be.equal(await aaveDaiProxy.getAmountOfTokenId(1));
       });
     });
 

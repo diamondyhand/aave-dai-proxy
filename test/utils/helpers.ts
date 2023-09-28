@@ -24,7 +24,7 @@ export const deploySC = async (scName: string, params: any) => {
   return SC;
 };
 
-export const toWei = (amount: number, decimal: number) => {
+export const toDAI = (amount: number, decimal: number) => {
   let newAmount: BigNumber;
   newAmount = BigNumber.from(amount);
   return newAmount.mul(BigNumber.from("10").pow(decimal));
